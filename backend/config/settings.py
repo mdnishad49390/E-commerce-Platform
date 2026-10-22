@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-c9j+g3u(3og%@^3%2pqga86z_(ivvc-k&nm4+4#h=shrmu95!7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*', '.vercel.app', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -149,7 +149,13 @@ APPLE_TEAM_ID = os.getenv('APPLE_TEAM_ID', '')
 APPLE_KEY_ID = os.getenv('APPLE_KEY_ID', '')
 APPLE_PRIVATE_KEY = os.getenv('APPLE_PRIVATE_KEY', '')
 
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
