@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { initializeGoogleLogin, loginWithGoogle } from '../utils/socialAuth'
-import { getRoleHome, saveAuthData } from '../utils/auth'
+import { getRoleHome, saveAuthData, API_BASE_URL } from '../utils/auth'
 
 function Login() {
   const [username, setUsername] = useState('')
@@ -20,7 +20,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/api/accounts/login/',
+        `${API_BASE_URL}/api/accounts/login/`,
         {
           method: 'POST',
           headers: {

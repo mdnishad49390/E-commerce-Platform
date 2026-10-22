@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { API_BASE_URL } from '../utils/auth'
 
-const API_URL = 'http://127.0.0.1:8000/api/products/categories/'
+const API_URL = `${API_BASE_URL}/api/products/categories/`
 
 function getCategoryIcon(categoryName) {
   const name = categoryName.toLowerCase()

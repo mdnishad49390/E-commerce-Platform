@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { API_BASE_URL } from '../utils/auth'
 
 function Checkout() {
   const location = useLocation()
@@ -203,7 +204,7 @@ function Checkout() {
   const validateVoucherCode = async (code, couponCode = '') => {
     const token = localStorage.getItem('access_token')
     const response = await fetch(
-      'http://127.0.0.1:8000/api/orders/vouchers/validate/',
+      `${API_BASE_URL}/api/orders/vouchers/validate/`,
       {
         method: 'POST',
         headers: {
@@ -255,7 +256,7 @@ function Checkout() {
     try {
       const token = localStorage.getItem('access_token')
       const response = await fetch(
-        'http://127.0.0.1:8000/api/orders/coupons/validate/',
+        `${API_BASE_URL}/api/orders/coupons/validate/`,
         {
           method: 'POST',
           headers: {
@@ -396,7 +397,7 @@ function Checkout() {
     }
 
       const response = await fetch(
-        'http://127.0.0.1:8000/api/orders/create/',
+        `${API_BASE_URL}/api/orders/create/`,
         {
           method: 'POST',
           headers,

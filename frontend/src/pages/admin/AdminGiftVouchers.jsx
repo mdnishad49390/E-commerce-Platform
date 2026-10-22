@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../../utils/auth'
 
-const API_URL = 'http://127.0.0.1:8000/api/admin/gift-vouchers/'
+const API_URL = `${API_BASE_URL}/api/admin/gift-vouchers/`
 
 export default function AdminGiftVouchers() {
   const [vouchers, setVouchers] = useState([])

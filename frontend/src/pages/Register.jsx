@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { initializeGoogleLogin, loginWithGoogle } from '../utils/socialAuth'
+import { API_BASE_URL } from '../utils/auth'
 
 function Register() {
   const [username, setUsername] = useState('')
@@ -28,7 +29,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:8000/api/accounts/register/',
+        `${API_BASE_URL}/api/accounts/register/`,
         {
           method: 'POST',
           headers: {

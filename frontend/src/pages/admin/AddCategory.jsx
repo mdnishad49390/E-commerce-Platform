@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../../utils/auth'
 
 export default function AddCategory() {
   const navigate = useNavigate()
@@ -30,7 +31,7 @@ export default function AddCategory() {
     if (form.image) payload.append('image', form.image)
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/admin/categories/', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/categories/`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: payload,

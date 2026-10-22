@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { clearAuthData } from '../utils/auth'
+import { clearAuthData, API_BASE_URL } from '../utils/auth'
 
 const trackingStatuses = [
   'Pending',
@@ -101,7 +101,7 @@ function MyOrders() {
 
       try {
         let response = await fetch(
-          'http://127.0.0.1:8000/api/orders/my-orders/',
+          `${API_BASE_URL}/api/orders/my-orders/`,
           {
             method: 'GET',
             headers: {
@@ -120,7 +120,7 @@ function MyOrders() {
           refreshToken
         ) {
           const refreshResponse = await fetch(
-            'http://127.0.0.1:8000/api/accounts/token/refresh/',
+            `${API_BASE_URL}/api/accounts/token/refresh/`,
             {
               method: 'POST',
               headers: {
@@ -148,7 +148,7 @@ function MyOrders() {
               Retry My Orders request
             */
             response = await fetch(
-              'http://127.0.0.1:8000/api/orders/my-orders/',
+              `${API_BASE_URL}/api/orders/my-orders/`,
               {
                 method: 'GET',
                 headers: {
@@ -221,7 +221,7 @@ function MyOrders() {
 
     try {
       let response = await fetch(
-        `http://127.0.0.1:8000/api/orders/${orderId}/cancel/`,
+        `${API_BASE_URL}/api/orders/${orderId}/cancel/`,
         {
           method: 'PATCH',
           headers: {
@@ -233,7 +233,7 @@ function MyOrders() {
 
       if (response.status === 401 && refreshToken) {
         const refreshResponse = await fetch(
-          'http://127.0.0.1:8000/api/accounts/token/refresh/',
+          `${API_BASE_URL}/api/accounts/token/refresh/`,
           {
             method: 'POST',
             headers: {
@@ -252,7 +252,7 @@ function MyOrders() {
           localStorage.setItem('access_token', accessToken)
 
           response = await fetch(
-            `http://127.0.0.1:8000/api/orders/${orderId}/cancel/`,
+            `${API_BASE_URL}/api/orders/${orderId}/cancel/`,
             {
               method: 'PATCH',
               headers: {

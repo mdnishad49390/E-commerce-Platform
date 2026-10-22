@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../../utils/auth'
 
 export default function EmployeeCategories() {
   const [categories, setCategories] = useState([])
@@ -14,7 +15,7 @@ export default function EmployeeCategories() {
       return
     }
 
-    fetch('http://127.0.0.1:8000/api/employee/categories/', {
+    fetch(`${API_BASE_URL}/api/employee/categories/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (response) => {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../../utils/auth'
 
-const API = 'http://127.0.0.1:8000/api/admin/employees/'
+const API = `${API_BASE_URL}/api/admin/employees/`
 const emptyForm = { first_name: '', last_name: '', username: '', email: '', password: '' }
 
 export default function AdminEmployees() {

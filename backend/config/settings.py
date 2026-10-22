@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-c9j+g3u(3og%@^3%2pqga86z_(ivvc-k&nm4+4#h=shrmu95!7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', '.vercel.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*', '.vercel.app', '.onrender.com', 'tech-mart-7vuc.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -153,9 +153,15 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://tech-mart-7vuc.onrender.com",
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.vercel.app",
+    "https://*.onrender.com",
+    "https://tech-mart-7vuc.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { updateStoredUsername } from '../utils/auth'
+import { updateStoredUsername, API_BASE_URL } from '../utils/auth'
 
 export default function Profile() {
   const navigate = useNavigate()
@@ -16,7 +16,7 @@ export default function Profile() {
       navigate('/login')
       return
     }
-    fetch('http://127.0.0.1:8000/api/accounts/profile/', { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_BASE_URL}/api/accounts/profile/`, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         if (!response.ok) throw new Error('Could not load your profile.')
         return response.json()
@@ -39,7 +39,7 @@ export default function Profile() {
     setError('')
     setSaved(false)
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/accounts/profile/', {
+      const response = await fetch(`${API_BASE_URL}/api/accounts/profile/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

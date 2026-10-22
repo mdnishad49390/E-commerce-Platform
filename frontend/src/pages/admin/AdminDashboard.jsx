@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import OrderStatusBadge from '../../components/admin/OrderStatusBadge'
 import StatCard from '../../components/admin/StatCard'
 import { formatPrice } from '../../utils/formatPrice'
+import { API_BASE_URL } from '../../utils/auth'
 
-const API = 'http://127.0.0.1:8000/api/admin'
+const API = `${API_BASE_URL}/api/admin`
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null)
@@ -74,7 +75,7 @@ export default function AdminDashboard() {
             {data.recent_products.length ? data.recent_products.map((product) => (
               <div className="recent-product-item" key={product.id}>
                 <div className="recent-product-image-wrap">
-                  {product.image ? <img src={`http://127.0.0.1:8000${product.image}`} alt={product.name} /> : <span>No image</span>}
+                  {product.image ? <img src={product.image.startsWith('http') ? product.image : `${API_BASE_URL}${product.image}`} alt={product.name} /> : <span>No image</span>}
                 </div>
                 <div className="recent-product-meta"><strong>{product.name}</strong><small>{product.category}</small><span>{formatPrice(Number(product.price))}</span><small>Stock: {product.stock}</small></div>
                 <Link className="mini-link" to={`/admin/products/edit/${product.id}`}>Edit</Link>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import OrderStatusBadge from '../../components/admin/OrderStatusBadge'
 import { formatPrice } from '../../utils/formatPrice'
+import { API_BASE_URL } from '../../utils/auth'
 
 const statuses = ['All', 'Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
 const payments = ['All', 'Cash on Delivery', 'Online Payment', 'POS on Delivery']
@@ -37,7 +38,7 @@ export default function AdminOrders({ apiPrefix = '/api/admin', routeBase = '/ad
     const params = new URLSearchParams({ search, status, payment_method: payment, delivery_method: delivery, sort })
     const timeout = window.setTimeout(() => {
       setLoading(true)
-      fetch(`http://127.0.0.1:8000${apiPrefix}/orders/?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${API_BASE_URL}${apiPrefix}/orders/?${params}`, { headers: { Authorization: `Bearer ${token}` } })
         .then(async (response) => {
           if (response.status === 403) throw new Error('Admin or employee privileges are required.')
           if (!response.ok) throw new Error('Could not load orders.')
@@ -73,7 +74,7 @@ export default function AdminOrders({ apiPrefix = '/api/admin', routeBase = '/ad
     setNotice(null)
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000${apiPrefix}/orders/${order.id}/status/`,
+        `${API_BASE_URL}${apiPrefix}/orders/${order.id}/status/`,
         {
           method: 'PATCH',
           headers: {

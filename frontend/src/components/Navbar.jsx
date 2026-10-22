@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { formatPrice } from '../utils/formatPrice'
-import { clearAuthData, getCurrentRole, getRoleHome } from '../utils/auth'
+import { clearAuthData, getCurrentRole, getRoleHome, API_BASE_URL } from '../utils/auth'
 
 
 function Navbar() {
@@ -53,7 +53,7 @@ function Navbar() {
   // LOAD PRODUCTS
   // =========================
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/products/')
+    fetch(`${API_BASE_URL}/api/products/`)
       .then((response) => response.json())
       .then((data) => setProducts(data))
       .catch((error) => console.error(error))

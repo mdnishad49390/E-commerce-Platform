@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatPrice } from '../../utils/formatPrice'
+import { API_BASE_URL } from '../../utils/auth'
 
 export default function AdminProducts({ apiPrefix = '/api/admin', routeBase = '/admin' }) {
   const [products, setProducts] = useState([])
@@ -15,7 +16,7 @@ export default function AdminProducts({ apiPrefix = '/api/admin', routeBase = '/
       return
     }
 
-    fetch(`http://127.0.0.1:8000${apiPrefix}/products/`, {
+    fetch(`${API_BASE_URL}${apiPrefix}/products/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -78,7 +79,10 @@ export default function AdminProducts({ apiPrefix = '/api/admin', routeBase = '/
                         {product.images?.length ? (
                           <div className="admin-product-image-wrap">
                             <img
-                              src={`http://127.0.0.1:8000${product.images.find((image) => image.is_primary)?.image || product.images[0].image}`}
+                              src={(() => {
+                                const raw = product.images.find((image) => image.is_primary)?.image || product.images[0].image;
+                                return raw.startsWith('http') ? raw : `${API_BASE_URL}${raw}`;
+                              })()}
                               alt={product.name}
                               className="admin-product-thumb"
                             />

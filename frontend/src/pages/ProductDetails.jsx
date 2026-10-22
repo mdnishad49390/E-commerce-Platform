@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { formatPrice } from '../utils/formatPrice'
+import { API_BASE_URL } from '../utils/auth'
 
 const emptyRatings = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
 
@@ -46,7 +47,7 @@ function ProductDetails() {
     setReviewLoading(true)
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/products/${productId}/reviews/`)
+      const response = await fetch(`${API_BASE_URL}/api/products/${productId}/reviews/`)
 
       if (!response.ok) {
         throw new Error('Unable to load reviews.')
@@ -78,7 +79,7 @@ function ProductDetails() {
     try {
       const accessToken = localStorage.getItem('access_token')
       const response = await fetch(
-        `http://127.0.0.1:8000/api/products/${productId}/reviews/eligibility/`,
+        `${API_BASE_URL}/api/products/${productId}/reviews/eligibility/`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -109,7 +110,7 @@ function ProductDetails() {
   }
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/products/${slug}/`)
+    fetch(`${API_BASE_URL}/api/products/${slug}/`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Product not found')
@@ -243,8 +244,8 @@ function ProductDetails() {
       const accessToken = localStorage.getItem('access_token')
       const method = editingReviewId ? 'PATCH' : 'POST'
       const url = editingReviewId
-        ? `http://127.0.0.1:8000/api/products/reviews/${editingReviewId}/`
-        : `http://127.0.0.1:8000/api/products/${product.id}/reviews/`
+        ? `${API_BASE_URL}/api/products/reviews/${editingReviewId}/`
+        : `${API_BASE_URL}/api/products/${product.id}/reviews/`
 
       const response = await fetch(url, {
         method,
@@ -292,7 +293,7 @@ function ProductDetails() {
     try {
       const accessToken = localStorage.getItem('access_token')
       const response = await fetch(
-        `http://127.0.0.1:8000/api/products/reviews/${reviewId}/`,
+        `${API_BASE_URL}/api/products/reviews/${reviewId}/`,
         {
           method: 'DELETE',
           headers: {

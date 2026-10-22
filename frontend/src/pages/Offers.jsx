@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
+import { API_BASE_URL } from '../utils/auth'
 
-const API_URL = 'http://127.0.0.1:8000/api/products/'
+const API_URL = `${API_BASE_URL}/api/products/`
 
 function Offers() {
   const [products, setProducts] = useState([])

@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { clearAuthData } from '../utils/auth'
+import { clearAuthData, API_BASE_URL } from '../utils/auth'
 
 const WishlistContext = createContext(null)
-const API_URL = 'http://127.0.0.1:8000/api/wishlist'
+const API_URL = `${API_BASE_URL}/api/wishlist`
 
 function getToken() {
   return localStorage.getItem('access_token')

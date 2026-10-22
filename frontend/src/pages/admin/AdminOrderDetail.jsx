@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import OrderStatusBadge from '../../components/admin/OrderStatusBadge'
 import { formatPrice } from '../../utils/formatPrice'
+import { API_BASE_URL } from '../../utils/auth'
 
 const statusTransitionMap = {
   Pending: ['Confirmed', 'Cancelled'],
@@ -36,7 +37,7 @@ export default function AdminOrderDetail({ apiPrefix = '/api/admin', routeBase =
       return
     }
 
-    fetch(`http://127.0.0.1:8000${apiPrefix}/orders/${id}/`, {
+    fetch(`${API_BASE_URL}${apiPrefix}/orders/${id}/`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -71,7 +72,7 @@ export default function AdminOrderDetail({ apiPrefix = '/api/admin', routeBase =
     setUpdating(true)
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000${apiPrefix}/orders/${id}/status/`, {
+      const response = await fetch(`${API_BASE_URL}${apiPrefix}/orders/${id}/status/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

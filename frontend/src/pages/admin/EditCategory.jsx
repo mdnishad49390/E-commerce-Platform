@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { API_BASE_URL } from '../../utils/auth'
 
 export default function EditCategory() {
   const { id } = useParams()
@@ -15,7 +16,7 @@ export default function EditCategory() {
   useEffect(() => {
     const token = localStorage.getItem('access_token')
 
-    fetch(`http://127.0.0.1:8000/api/admin/categories/${id}/`, {
+    fetch(`${API_BASE_URL}/api/admin/categories/${id}/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (response) => {
@@ -52,7 +53,7 @@ export default function EditCategory() {
     if (form.image) payload.append('image', form.image)
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/admin/categories/${id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/categories/${id}/`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
         body: payload,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
+import { API_BASE_URL } from '../utils/auth'
 
 function Search() {
   const [searchParams] = useSearchParams()
@@ -28,10 +29,10 @@ function Search() {
         const [productsResponse, categoriesResponse] =
           await Promise.all([
             fetch(
-              'http://127.0.0.1:8000/api/products/'
+              `${API_BASE_URL}/api/products/`
             ),
             fetch(
-              'http://127.0.0.1:8000/api/products/categories/'
+              `${API_BASE_URL}/api/products/categories/`
             ),
           ])
 

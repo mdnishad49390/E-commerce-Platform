@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../../utils/auth'
 
 export default function AdminCategories() {
   const [categories, setCategories] = useState([])
@@ -14,7 +15,7 @@ export default function AdminCategories() {
       return
     }
 
-    fetch('http://127.0.0.1:8000/api/admin/categories/', {
+    fetch(`${API_BASE_URL}/api/admin/categories/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (response) => {
@@ -71,7 +72,7 @@ export default function AdminCategories() {
                     <tr key={category.id}>
                       <td>
                         {category.image ? (
-                          <img src={`http://127.0.0.1:8000${category.image}`} alt={category.name} className="admin-product-thumb" />
+                          <img src={category.image.startsWith('http') ? category.image : `${API_BASE_URL}${category.image}`} alt={category.name} className="admin-product-thumb" />
                         ) : (
                           <span className="admin-thumb-placeholder">No image</span>
                         )}

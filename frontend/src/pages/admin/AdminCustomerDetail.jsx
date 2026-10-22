@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import OrderStatusBadge from '../../components/admin/OrderStatusBadge'
 import { formatPrice } from '../../utils/formatPrice'
+import { API_BASE_URL } from '../../utils/auth'
 
 export default function AdminCustomerDetail() {
   const { id } = useParams()
@@ -17,7 +18,7 @@ export default function AdminCustomerDetail() {
       return
     }
 
-    fetch(`http://127.0.0.1:8000/api/admin/customers/${id}/`, {
+    fetch(`${API_BASE_URL}/api/admin/customers/${id}/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (response) => {

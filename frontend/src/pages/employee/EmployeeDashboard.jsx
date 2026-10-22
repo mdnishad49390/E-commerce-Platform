@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import StatCard from '../../components/admin/StatCard'
+import { API_BASE_URL } from '../../utils/auth'
 
 export default function EmployeeDashboard() {
   const [stats, setStats] = useState(null)
@@ -14,7 +15,7 @@ export default function EmployeeDashboard() {
       return
     }
 
-    fetch('http://127.0.0.1:8000/api/employee/dashboard/', {
+    fetch(`${API_BASE_URL}/api/employee/dashboard/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (response) => {

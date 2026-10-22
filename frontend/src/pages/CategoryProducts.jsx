@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
+import { API_BASE_URL } from '../utils/auth'
 
-const PRODUCTS_URL = 'http://127.0.0.1:8000/api/products/'
-const CATEGORIES_URL = 'http://127.0.0.1:8000/api/products/categories/'
+const PRODUCTS_URL = `${API_BASE_URL}/api/products/`
+const CATEGORIES_URL = `${API_BASE_URL}/api/products/categories/`
 
 function CategoryProducts() {
   const { slug } = useParams()

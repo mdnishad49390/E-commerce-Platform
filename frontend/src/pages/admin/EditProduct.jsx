@@ -40,21 +40,21 @@ export default function EditProduct({ apiPrefix = '/api/admin', routeBase = '/ad
   useEffect(() => {
     const token = localStorage.getItem('access_token')
 
-    fetch(`http://127.0.0.1:8000${apiPrefix}/categories/`, {
+    fetch(`${API_BASE_URL}${apiPrefix}/categories/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((response) => response.json())
       .then((data) => setCategories(data.results || data))
       .catch(() => setCategories([]))
 
-    fetch(`http://127.0.0.1:8000${apiPrefix}/brands/`, {
+    fetch(`${API_BASE_URL}${apiPrefix}/brands/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((response) => response.json())
       .then((data) => setBrands(data.results || data))
       .catch(() => setBrands([]))
 
-    fetch(`http://127.0.0.1:8000${apiPrefix}/products/${id}/`, {
+    fetch(`${API_BASE_URL}${apiPrefix}/products/${id}/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (response) => {
@@ -223,7 +223,7 @@ export default function EditProduct({ apiPrefix = '/api/admin', routeBase = '/ad
             Add product image
             <input type="file" name="image" accept="image/*" onChange={handleChange} />
           </label>
-          {imagePreview ? <img src={imagePreview.startsWith('blob:') ? imagePreview : `http://127.0.0.1:8000${imagePreview}`} alt="Product preview" className="admin-image-preview" /> : null}
+          {imagePreview ? <img src={imagePreview.startsWith('blob:') || imagePreview.startsWith('http') ? imagePreview : `${API_BASE_URL}${imagePreview}`} alt="Product preview" className="admin-image-preview" /> : null}
 
           {!employeeMode ? (
             <>

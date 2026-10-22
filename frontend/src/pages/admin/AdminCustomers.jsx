@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatPrice } from '../../utils/formatPrice'
+import { API_BASE_URL } from '../../utils/auth'
 
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState([])
@@ -18,7 +19,7 @@ export default function AdminCustomers() {
 
     setLoading(true)
     const controller = new AbortController()
-    const timeout = window.setTimeout(() => fetch(`http://127.0.0.1:8000/api/admin/customers/?search=${encodeURIComponent(search)}`, {
+    const timeout = window.setTimeout(() => fetch(`${API_BASE_URL}/api/admin/customers/?search=${encodeURIComponent(search)}`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: controller.signal,
     })

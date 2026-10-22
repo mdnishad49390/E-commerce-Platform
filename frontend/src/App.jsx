@@ -47,7 +47,7 @@ import EmployeeCategories from './pages/employee/EmployeeCategories'
 import Profile from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
 import { formatPrice } from './utils/formatPrice'
-import { getCurrentRole } from './utils/auth'
+import { getCurrentRole, API_BASE_URL } from './utils/auth'
 
 const categoryIcons = {
   electronics: '⚡',
@@ -74,7 +74,7 @@ function getCategoryIcon(category) {
 }
 
 function getCategoryImageUrl(imagePath) {
-  return new URL(imagePath, 'http://127.0.0.1:8000').toString()
+  return new URL(imagePath, API_BASE_URL).toString()
 }
 
 function CategoryVisual({ category }) {
@@ -109,7 +109,7 @@ function Home() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/products/')
+    fetch(`${API_BASE_URL}/api/products/`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch products')
@@ -130,7 +130,7 @@ function Home() {
 
   useEffect(() => {
   fetch(
-    'http://127.0.0.1:8000/api/products/latest/'
+    `${API_BASE_URL}/api/products/latest/`
   )
     .then((response) => {
       if (!response.ok) {
@@ -156,7 +156,7 @@ function Home() {
 }, [])
 
     useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/products/categories/')
+    fetch(`${API_BASE_URL}/api/products/categories/`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch categories')
