@@ -150,20 +150,25 @@ APPLE_KEY_ID = os.getenv('APPLE_KEY_ID', '')
 APPLE_PRIVATE_KEY = os.getenv('APPLE_PRIVATE_KEY', '')
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+    r"^https:\/\/.*\.onrender\.com$",
+]
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://tech-mart-7vuc.onrender.com",
 ]
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.vercel\.app$",
-]
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.vercel.app",
-    "https://*.onrender.com",
-    "https://tech-mart-7vuc.onrender.com",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    'https://*.vercel.app',
+    'https://*.onrender.com',
+    'https://tech-mart-7vuc.onrender.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
 ]
 
 REST_FRAMEWORK = {
