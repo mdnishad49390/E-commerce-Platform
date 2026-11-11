@@ -125,71 +125,50 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
+        <div className="navbar-start">
+          <Link to="/" className="logo">
+            <img
+              src="/tech-mart-logo.png"
+              alt="Tech Mart"
+            />
+          </Link>
 
-        {/* Logo */}
-        <Link to="/" className="logo">
-          <img
-            src="/tech-mart-logo.png"
-            alt="Tech Mart"
-          />
-        </Link>
-
-        {/* Navigation */}
-        <div className="nav-links">
-          <Link to="/">Home</Link>
-          <Link to="/">TechMart</Link>
-          <Link to="/categories">Categories</Link>
-          <Link to="/offers">Offers</Link>
-          <Link to="/contact">Contact</Link>
+          <div className="nav-links">
+            <Link to="/">Home</Link>
+            <Link to="/">TechMart</Link>
+            <Link to="/categories">Categories</Link>
+            <Link to="/offers">Offers</Link>
+            <Link to="/contact">Contact</Link>
+          </div>
         </div>
 
-        {/* =========================
-            SEARCH BOX
-        ========================= */}
-        {showSearch && (
-          <div
-            className="search-wrapper"
-            ref={searchRef}
-          >
+        <div className="navbar-end">
+          {showSearch && (
+            <div className="search-wrapper" ref={searchRef}>
+              <div className="search-container">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearch()
+                    }
+                  }}
+                  autoFocus
+                />
 
-            <div className="search-container">
+                <button type="button" onClick={handleSearch}>
+                  🔍
+                </button>
+              </div>
 
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) =>
-                  setSearchTerm(e.target.value)
-                }
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch()
-                  }
-                }}
-                autoFocus
-              />
-
-              <button
-                type="button"
-                onClick={handleSearch}
-              >
-                🔍
-              </button>
-
-            </div>
-
-            {/* Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="search-suggestions">
-
-                {suggestions
-                  .slice(0, 5)
-                  .map((product) => {
-
+              {suggestions.length > 0 && (
+                <div className="search-suggestions">
+                  {suggestions.slice(0, 5).map((product) => {
                     const image =
-                      product.images?.find(
-                        (img) => img.is_primary
-                      )?.image ||
+                      product.images?.find((img) => img.is_primary)?.image ||
                       product.images?.[0]?.image
 
                     return (
@@ -198,40 +177,27 @@ function Navbar() {
                         to={`/product/${product.slug}`}
                         className="search-suggestion-item"
                       >
-
                         {image && (
-                          <img
-                            src={image}
-                            alt={product.name}
-                          />
+                          <img src={image} alt={product.name} />
                         )}
 
                         <div>
-                          <strong>
-                            {product.name}
-                          </strong>
-
+                          <strong>{product.name}</strong>
                           <span>
                             {formatPrice(
                               product.discount_price || product.price
                             )}
                           </span>
                         </div>
-
                       </Link>
                     )
                   })}
+                </div>
+              )}
+            </div>
+          )}
 
-              </div>
-            )}
-
-          </div>
-        )}
-
-        {/* =========================
-            ACTIONS
-        ========================= */}
-        <div className="nav-actions">
+          <div className="nav-actions">
 
           {/* Search */}
           <button
@@ -320,8 +286,8 @@ function Navbar() {
             </Link>
           )}
 
+          </div>
         </div>
-
       </div>
     </nav>
   )

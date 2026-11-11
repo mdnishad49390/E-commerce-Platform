@@ -26,7 +26,8 @@ def env_list(name: str, default: str = '') -> list[str]:
 
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-dev-only-change-in-production')
-DEBUG = env_bool('DJANGO_DEBUG', default=False)
+# Local dev: True so runserver serves admin static files. Set DJANGO_DEBUG=false in production.
+DEBUG = env_bool('DJANGO_DEBUG', default=True)
 
 ALLOWED_HOSTS = env_list(
     'DJANGO_ALLOWED_HOSTS',
@@ -109,7 +110,7 @@ TIME_ZONE = 'Asia/Dhaka'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -137,6 +138,8 @@ CORS_ALLOW_CREDENTIALS = True
 
 _default_cors = (
     'http://localhost:5173,http://127.0.0.1:5173,'
+    'http://localhost:5174,http://127.0.0.1:5174,'
+    'http://localhost:5175,http://127.0.0.1:5175,'
     'https://tech-mart-7vuc.onrender.com'
 )
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS', _default_cors)

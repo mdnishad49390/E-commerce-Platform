@@ -15,19 +15,44 @@ body {
   position: sticky;
   top: 0;
   z-index: 1000;
+  width: 100%;
+  overflow-x: clip;
 }
 
 .navbar-container {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 1200px;
-  margin: auto;
-  height: 72px;
+  margin: 0 auto;
+  min-height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  gap: 16px;
+  padding: 8px 24px;
+}
+
+.navbar-start {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 32px);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.navbar-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
 }
 
 .logo {
+  flex-shrink: 0;
   font-size: 28px;
   font-weight: 800;
   color: #111827;
@@ -35,7 +60,10 @@ body {
 
 .nav-links {
   display: flex;
-  gap: 30px;
+  align-items: center;
+  gap: clamp(12px, 2vw, 28px);
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .nav-links a {
@@ -51,7 +79,9 @@ body {
 
 .nav-actions {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .nav-actions button {
@@ -2095,7 +2125,7 @@ th {
   }
 }
 .logo img {
-  width: 150px;
+  width: min(150px, 28vw);
   height: auto;
   display: block;
 }
@@ -2131,14 +2161,10 @@ th {
 ========================= */
 
 .search-wrapper {
-  position: absolute;
-  top: 50%;
-  right: 115px;
-
-  width: 380px;
-
-  transform: translateY(-50%);
-
+  position: relative;
+  flex: 0 1 min(300px, 32vw);
+  width: min(300px, 32vw);
+  min-width: 0;
   z-index: 9999;
 }
 
@@ -2589,19 +2615,20 @@ th {
 }
 
 
-/* =========================
-   NAVBAR CONTAINER
-========================= */
-
-.navbar-container {
-  position: relative;
-}
-
-/* Search input on small screens */
 @media (max-width: 600px) {
+  .navbar-container {
+    padding: 8px 16px;
+    gap: 10px;
+  }
+
   .search-wrapper {
-    width: min(380px, calc(100vw - 30px));
-    right: -5px;
+    flex: 1 1 160px;
+    width: auto;
+    max-width: min(280px, calc(100vw - 140px));
+  }
+
+  .username-label {
+    max-width: 72px;
   }
 }
 /* =========================
