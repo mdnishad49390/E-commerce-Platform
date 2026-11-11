@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { formatPrice } from '../utils/formatPrice'
-import { clearAuthData, getCurrentRole, getRoleHome, API_BASE_URL } from '../utils/auth'
+import { getCurrentRole, getRoleHome, API_BASE_URL, logout } from '../utils/auth'
 
 
 function Navbar() {
@@ -114,7 +114,7 @@ function Navbar() {
   // LOGOUT
   // =========================
   const handleLogout = () => {
-    clearAuthData()
+    logout()
     setUsername(null)
     setRole('customer')
     clearCart()

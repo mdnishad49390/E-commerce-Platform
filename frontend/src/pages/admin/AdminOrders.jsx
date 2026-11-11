@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import OrderStatusBadge from '../../components/admin/OrderStatusBadge'
 import { formatPrice } from '../../utils/formatPrice'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 const statuses = ['All', 'Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
 const payments = ['All', 'Cash on Delivery', 'Online Payment', 'POS on Delivery']
@@ -29,7 +29,7 @@ export default function AdminOrders({ apiPrefix = '/api/admin', routeBase = '/ad
   const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return
@@ -64,7 +64,7 @@ export default function AdminOrders({ apiPrefix = '/api/admin', routeBase = '/ad
     )
     if (!confirmed) return
 
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return

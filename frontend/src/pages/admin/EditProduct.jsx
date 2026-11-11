@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { API_BASE_URL, fetchWithTokenRefresh } from '../../utils/auth'
+import { API_BASE_URL, fetchWithTokenRefresh , getAccessToken} from '../../utils/auth'
 
 const getApiErrorMessage = (data) => {
   if (typeof data === 'string') return data
@@ -38,7 +38,7 @@ export default function EditProduct({ apiPrefix = '/api/admin', routeBase = '/ad
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
 
     fetch(`${API_BASE_URL}${apiPrefix}/categories/`, {
       headers: { Authorization: `Bearer ${token}` },

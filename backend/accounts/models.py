@@ -58,3 +58,23 @@ class SocialAccount(models.Model):
 
     def __str__(self):
         return f'{self.provider}:{self.provider_user_id}'
+
+
+class AdminAuditLog(models.Model):
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='admin_audit_actions',
+    )
+    action = models.CharField(max_length=80)
+    target_type = models.CharField(max_length=40)
+    target_id = models.CharField(max_length=64, blank=True, default='')
+    detail = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.action} {self.target_type}:{self.target_id}'

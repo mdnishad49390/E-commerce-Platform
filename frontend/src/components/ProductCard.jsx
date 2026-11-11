@@ -1,3 +1,4 @@
+import { getAccessToken } from '../utils/auth'
 import { Link, useNavigate } from 'react-router-dom'
 import { useWishlist } from '../context/WishlistContext'
 import { formatPrice } from '../utils/formatPrice'
@@ -41,7 +42,7 @@ function ProductCard({ product }) {
     event.preventDefault()
     event.stopPropagation()
 
-    if (!localStorage.getItem('access_token')) {
+    if (!getAccessToken()) {
       navigate('/login')
       return
     }

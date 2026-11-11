@@ -495,3 +495,77 @@ class ProductReviewDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         review = self.get_object()
         self.perform_destroy(review)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminReviewListAPIView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        reviews = ProductReview.objects.select_related('user', 'product').order_by('-created_at')
+        product_id = request.query_params.get('product_id')
+        if product_id:
+            reviews = reviews.filter(product_id=product_id)
+        search = (request.query_params.get('search') or '').strip()
+        if search:
+            reviews = reviews.filter(
+                Q(review__icontains=search)
+                | Q(product__name__icontains=search)
+                | Q(user__username__icontains=search)
+            )
+
+        return Response([
+            {
+                'id': review.id,
+                'product_id': review.product_id,
+                'product_name': review.product.name,
+                'user_id': review.user_id,
+                'username': review.user.username,
+                'rating': review.rating,
+                'review': review.review,
+                'created_at': review.created_at.isoformat(),
+            }
+            for review in reviews[:500]
+        ])
+
+
+class AdminReviewDetailAPIView(APIView):
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, review_id):
+        review = ProductReview.objects.select_related('product', 'user').filter(id=review_id).first()
+        if not review:
+            return Response({'error': 'Review not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        rating = request.data.get('rating')
+        if rating is not None:
+            try:
+                rating = int(rating)
+            except (TypeError, ValueError):
+                return Response({'error': 'Invalid rating.'}, status=status.HTTP_400_BAD_REQUEST)
+            if rating < 1 or rating > 5:
+                return Response({'error': 'Rating must be between 1 and 5.'}, status=status.HTTP_400_BAD_REQUEST)
+            review.rating = rating
+
+        if 'review' in request.data:
+            review.review = str(request.data.get('review') or '').strip()
+            if not review.review:
+                return Response({'error': 'Review text cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        review.save()
+        from accounts.audit import log_admin_action
+        log_admin_action(request.user, 'review.update', 'review', review.pk, '')
+
+        return Response({
+            'id': review.id,
+            'rating': review.rating,
+            'review': review.review,
+        })
+
+    def delete(self, request, review_id):
+        review = ProductReview.objects.filter(id=review_id).first()
+        if not review:
+            return Response({'error': 'Review not found.'}, status=status.HTTP_404_NOT_FOUND)
+        from accounts.audit import log_admin_action
+        review.delete()
+        log_admin_action(request.user, 'review.delete', 'review', review_id, '')
+        return Response({'message': 'Review deleted.'}, status=status.HTTP_200_OK)

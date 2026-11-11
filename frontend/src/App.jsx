@@ -37,6 +37,7 @@ import EditCategory from './pages/admin/EditCategory'
 import AdminCustomers from './pages/admin/AdminCustomers'
 import AdminCustomerDetail from './pages/admin/AdminCustomerDetail'
 import AdminEmployees from './pages/admin/AdminEmployees'
+import AdminUsers from './pages/admin/AdminUsers'
 import AdminGiftVouchers from './pages/admin/AdminGiftVouchers'
 import GiftVoucherForm from './pages/admin/GiftVoucherForm'
 import AdminProfile from './pages/admin/AdminProfile'
@@ -583,6 +584,7 @@ function AppShell() {
           <Route path="customers" element={<AdminCustomers />} />
           <Route path="customers/:id" element={<AdminCustomerDetail />} />
           <Route path="employees" element={<AdminEmployees />} />
+          <Route path="users" element={<AdminUsers />} />
           <Route path="profile" element={<AdminProfile />} />
           <Route path="change-password" element={<AdminChangePassword />} />
         </Route>

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { formatPrice } from '../utils/formatPrice'
-import { API_BASE_URL } from '../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../utils/auth'
 
 const emptyRatings = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
 
@@ -39,7 +39,7 @@ function ProductDetails() {
   const [editingReviewId, setEditingReviewId] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const isLoggedIn = Boolean(localStorage.getItem('access_token'))
+  const isLoggedIn = Boolean(getAccessToken())
   const currentUsername = localStorage.getItem('username')
   const currentUserReview = reviews.find((review) => review.username === currentUsername)
 
@@ -69,7 +69,7 @@ function ProductDetails() {
   }
 
   const fetchReviewEligibility = async (productId) => {
-    if (!localStorage.getItem('access_token')) {
+    if (!getAccessToken()) {
       setReviewEligibility({ can_review: false, reason: 'not_authenticated' })
       return
     }
@@ -77,7 +77,7 @@ function ProductDetails() {
     setReviewEligibilityLoading(true)
 
     try {
-      const accessToken = localStorage.getItem('access_token')
+      const accessToken = getAccessToken()
       const response = await fetch(
         `${API_BASE_URL}/api/products/${productId}/reviews/eligibility/`,
         {
@@ -204,7 +204,7 @@ function ProductDetails() {
   }
 
   const handleWishlist = async () => {
-    if (!localStorage.getItem('access_token')) {
+    if (!getAccessToken()) {
       navigate('/login')
       return
     }
@@ -241,7 +241,7 @@ function ProductDetails() {
     setIsSubmitting(true)
 
     try {
-      const accessToken = localStorage.getItem('access_token')
+      const accessToken = getAccessToken()
       const method = editingReviewId ? 'PATCH' : 'POST'
       const url = editingReviewId
         ? `${API_BASE_URL}/api/products/reviews/${editingReviewId}/`
@@ -291,7 +291,7 @@ function ProductDetails() {
     }
 
     try {
-      const accessToken = localStorage.getItem('access_token')
+      const accessToken = getAccessToken()
       const response = await fetch(
         `${API_BASE_URL}/api/products/reviews/${reviewId}/`,
         {

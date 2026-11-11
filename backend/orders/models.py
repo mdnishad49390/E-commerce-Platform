@@ -161,6 +161,17 @@ class GiftVoucherUsage(models.Model):
 
 class Order(models.Model):
 
+    PAYMENT_STATUS_NOT_REQUIRED = 'not_required'
+    PAYMENT_STATUS_PENDING = 'pending'
+    PAYMENT_STATUS_PAID = 'paid'
+    PAYMENT_STATUS_FAILED = 'failed'
+    PAYMENT_STATUS_CHOICES = [
+        (PAYMENT_STATUS_NOT_REQUIRED, 'Not required'),
+        (PAYMENT_STATUS_PENDING, 'Pending'),
+        (PAYMENT_STATUS_PAID, 'Paid'),
+        (PAYMENT_STATUS_FAILED, 'Failed'),
+    ]
+
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Confirmed', 'Confirmed'),
@@ -256,6 +267,14 @@ class Order(models.Model):
         unique=True,
         blank=True
     )
+
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default=PAYMENT_STATUS_NOT_REQUIRED,
+    )
+    gateway_transaction_id = models.CharField(max_length=120, blank=True, default='')
+    gateway_session_key = models.CharField(max_length=120, blank=True, default='')
 
     created_at = models.DateTimeField(
         auto_now_add=True

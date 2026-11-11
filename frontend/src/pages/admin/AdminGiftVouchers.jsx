@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 const API_URL = `${API_BASE_URL}/api/admin/gift-vouchers/`
 
@@ -12,7 +12,7 @@ export default function AdminGiftVouchers() {
   const navigate = useNavigate()
 
   const loadVouchers = useCallback(async () => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return
@@ -47,7 +47,7 @@ export default function AdminGiftVouchers() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${getAccessToken()}`,
         },
         body: JSON.stringify({ is_active: !voucher.is_active }),
       })
@@ -72,7 +72,7 @@ export default function AdminGiftVouchers() {
     try {
       const response = await fetch(`${API_URL}${voucher.id}/`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {

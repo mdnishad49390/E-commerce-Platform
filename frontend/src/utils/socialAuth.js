@@ -7,6 +7,7 @@ const requestSocialLogin = async (provider, body, fallbackMessage) => {
   try {
     response = await fetch(`${API_BASE_URL}/api/accounts/${provider}-login/`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },

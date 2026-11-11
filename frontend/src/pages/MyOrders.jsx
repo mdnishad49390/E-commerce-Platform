@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { clearAuthData, API_BASE_URL } from '../utils/auth'
+import { clearAuthData, API_BASE_URL, fetchWithTokenRefresh, getAccessToken } from '../utils/auth'
 
 const trackingStatuses = [
   'Pending',
@@ -88,85 +88,24 @@ function MyOrders() {
 
   useEffect(() => {
     const loadOrders = async () => {
-      let accessToken =
-        localStorage.getItem('access_token')
-
-      const refreshToken =
-        localStorage.getItem('refresh_token')
-
-      if (!accessToken) {
+      if (!getAccessToken()) {
         navigate('/login')
         return
       }
 
       try {
-        let response = await fetch(
+        const response = await fetchWithTokenRefresh(
           `${API_BASE_URL}/api/orders/my-orders/`,
           {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
+            headers: { 'Content-Type': 'application/json' },
+          },
         )
 
-        /*
-          Access token expired.
-          Try to get a new access token.
-        */
-        if (
-          response.status === 401 &&
-          refreshToken
-        ) {
-          const refreshResponse = await fetch(
-            `${API_BASE_URL}/api/accounts/token/refresh/`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                refresh: refreshToken,
-              }),
-            }
-          )
-
-          const refreshData =
-            await refreshResponse.json()
-
-          if (refreshResponse.ok) {
-            accessToken =
-              refreshData.access
-
-            localStorage.setItem(
-              'access_token',
-              accessToken
-            )
-
-            /*
-              Retry My Orders request
-            */
-            response = await fetch(
-              `${API_BASE_URL}/api/orders/my-orders/`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              }
-            )
-          } else {
-            /*
-              Refresh token also expired.
-              Login is required.
-            */
-            clearAuthData()
-
-            navigate('/login')
-            return
-          }
+        if (response.status === 401) {
+          clearAuthData()
+          navigate('/login')
+          return
         }
 
         const data = await response.json()
@@ -216,56 +155,19 @@ function MyOrders() {
       return
     }
 
-    let accessToken = localStorage.getItem('access_token')
-    const refreshToken = localStorage.getItem('refresh_token')
-
     try {
-      let response = await fetch(
+      const response = await fetchWithTokenRefresh(
         `${API_BASE_URL}/api/orders/${orderId}/cancel/`,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+          headers: { 'Content-Type': 'application/json' },
+        },
       )
 
-      if (response.status === 401 && refreshToken) {
-        const refreshResponse = await fetch(
-          `${API_BASE_URL}/api/accounts/token/refresh/`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              refresh: refreshToken,
-            }),
-          }
-        )
-
-        const refreshData = await refreshResponse.json()
-
-        if (refreshResponse.ok) {
-          accessToken = refreshData.access
-          localStorage.setItem('access_token', accessToken)
-
-          response = await fetch(
-            `${API_BASE_URL}/api/orders/${orderId}/cancel/`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`,
-              },
-            }
-          )
-        } else {
-          clearAuthData()
-          navigate('/login')
-          return
-        }
+      if (response.status === 401) {
+        clearAuthData()
+        navigate('/login')
+        return
       }
 
       const data = await response.json()
@@ -393,6 +295,27 @@ function MyOrders() {
                   >
                     {order.status}
                   </div>
+
+                  <a
+                    className="cancel-order-button"
+                    href={`${API_BASE_URL}/api/orders/${order.id}/invoice/`}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      fetchWithTokenRefresh(`${API_BASE_URL}/api/orders/${order.id}/invoice/`)
+                        .then((res) => res.blob())
+                        .then((blob) => {
+                          const url = URL.createObjectURL(blob)
+                          const anchor = document.createElement('a')
+                          anchor.href = url
+                          anchor.download = `invoice-${order.order_number}.pdf`
+                          anchor.click()
+                          URL.revokeObjectURL(url)
+                        })
+                        .catch(() => alert('Could not download invoice.'))
+                    }}
+                  >
+                    Invoice PDF
+                  </a>
 
                   {order.status !== 'Cancelled' &&
                     order.status !== 'Delivered' &&

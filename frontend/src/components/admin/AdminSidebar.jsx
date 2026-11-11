@@ -8,6 +8,7 @@ const navItems = [
   { label: 'Gift Vouchers', path: '/admin/gift-vouchers', icon: '🎁' },
   { label: 'Customers', path: '/admin/customers' },
   { label: 'Employees', path: '/admin/employees' },
+  { label: 'All Users', path: '/admin/users' },
 ]
 
 export default function AdminSidebar({ isOpen, onClose, onLogout }) {

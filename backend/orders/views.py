@@ -8,10 +8,14 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.audit import log_admin_action
+from accounts.guards import is_platform_admin
 from accounts.models import UserRoleProfile
 from accounts.permissions import IsAdmin, IsAdminOrEmployee
 from accounts.roles import get_user_role
 from products.models import Product
+from .emails import send_order_confirmation, send_order_status_update
+from .shipping import calculate_delivery_fee
 from .models import (
     Coupon,
     CouponUsage,
@@ -141,6 +145,40 @@ def build_discount_summary(subtotal, coupon_code, voucher_code, user=None):
 
     if normalized_voucher_code:
         voucher = GiftVoucher.objects.filter(code__iexact=normalized_voucher_code).first()
+        if voucher is None:
+            raise ValueError('Invalid gift voucher code.')
+        requested_voucher_discount = calculate_gift_voucher_discount(subtotal, voucher, user=user)
+        voucher_discount = min(requested_voucher_discount, remaining_after_coupon)
+
+    return {
+        'coupon': coupon,
+        'voucher': voucher,
+        'coupon_discount': money(coupon_discount),
+        'voucher_discount': money(voucher_discount),
+        'final_discounted_subtotal': money(max(subtotal - coupon_discount - voucher_discount, Decimal('0'))),
+    }
+
+
+def build_discount_summary_locked(subtotal, coupon_code, voucher_code, user=None):
+    """Same as build_discount_summary but row-locks coupon/voucher for checkout."""
+    coupon_discount = Decimal('0')
+    voucher_discount = Decimal('0')
+    coupon = None
+    voucher = None
+
+    normalized_coupon_code = normalize_code(coupon_code)
+    normalized_voucher_code = normalize_code(voucher_code)
+
+    if normalized_coupon_code:
+        coupon = Coupon.objects.select_for_update().filter(code__iexact=normalized_coupon_code).first()
+        if coupon is None:
+            raise ValueError('Invalid coupon code.')
+        coupon_discount = calculate_coupon_discount(subtotal, coupon, user=user)
+
+    remaining_after_coupon = max(subtotal - coupon_discount, Decimal('0'))
+
+    if normalized_voucher_code:
+        voucher = GiftVoucher.objects.select_for_update().filter(code__iexact=normalized_voucher_code).first()
         if voucher is None:
             raise ValueError('Invalid gift voucher code.')
         requested_voucher_discount = calculate_gift_voucher_discount(subtotal, voucher, user=user)
@@ -354,16 +392,7 @@ class CreateOrderAPIView(APIView):
         # Delivery Fee
         # --------------------------------
 
-        delivery_fees = {
-            'Home Delivery': Decimal('70'),
-            'Store Pickup': Decimal('0'),
-            'Express Delivery': Decimal('120'),
-        }
-
-        delivery_fee = delivery_fees.get(
-            delivery_method,
-            Decimal('70')
-        )
+        delivery_fee = calculate_delivery_fee(delivery_method, district, upazila)
 
         # --------------------------------
         # Calculate Subtotal
@@ -403,6 +432,9 @@ class CreateOrderAPIView(APIView):
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
+            if item.get('price') is not None or item.get('subtotal') is not None:
+                pass  # ponytail: ignore client-supplied pricing; DB is source of truth
 
             # Get product and lock row
             try:
@@ -471,7 +503,12 @@ class CreateOrderAPIView(APIView):
         gift_voucher_code = normalize_code(data.get('gift_voucher_code') or data.get('gift_voucher') or data.get('voucher'))
 
         try:
-            discount_summary = build_discount_summary(subtotal, coupon_code, gift_voucher_code, user=request.user)
+            discount_summary = build_discount_summary_locked(
+                subtotal,
+                coupon_code,
+                gift_voucher_code,
+                user=request.user,
+            )
         except ValueError as exc:
             return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -486,6 +523,12 @@ class CreateOrderAPIView(APIView):
         # --------------------------------
         # Create Order
         # --------------------------------
+
+        payment_status = (
+            Order.PAYMENT_STATUS_PENDING
+            if payment_method == 'Online Payment'
+            else Order.PAYMENT_STATUS_NOT_REQUIRED
+        )
 
         order = Order.objects.create(
             user=request.user,
@@ -508,6 +551,7 @@ class CreateOrderAPIView(APIView):
             delivery_fee=delivery_fee,
             total=total,
             status='Pending',
+            payment_status=payment_status,
         )
 
         # --------------------------------
@@ -552,9 +596,7 @@ class CreateOrderAPIView(APIView):
                 amount_used=gift_voucher_discount,
             )
 
-        # --------------------------------
-        # Response
-        # --------------------------------
+        send_order_confirmation(order)
 
         return Response(
             {
@@ -566,6 +608,8 @@ class CreateOrderAPIView(APIView):
                 'delivery_fee': order.delivery_fee,
                 'total': order.total,
                 'status': order.status,
+                'payment_status': order.payment_status,
+                'requires_online_payment': payment_method == 'Online Payment',
             },
             status=status.HTTP_201_CREATED
         )
@@ -1126,6 +1170,13 @@ class AdminDashboardAPIView(APIView):
 
 
 def get_allowed_order_statuses(user, current_status):
+    if user and getattr(user, 'is_superuser', False):
+        return [
+            status
+            for status, _ in Order.STATUS_CHOICES
+            if status != current_status
+        ]
+
     transitions = {
         'Pending': ['Confirmed', 'Cancelled'],
         'Confirmed': ['Processing', 'Cancelled'],
@@ -1258,19 +1309,69 @@ class AdminOrderStatusUpdateAPIView(APIView):
         if not new_status:
             return Response({'error': 'Status is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        available_statuses = get_allowed_order_statuses(request.user, order.status)
-        if new_status not in available_statuses:
-            return Response({
-                'error': f'Invalid status transition from {order.status} to {new_status}.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        force_override = request.data.get('force') in [True, 'true', 'True', '1']
+        valid_statuses = {choice for choice, _ in Order.STATUS_CHOICES}
 
+        if new_status not in valid_statuses:
+            return Response({'error': 'Invalid status value.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not (request.user.is_superuser or (force_override and is_platform_admin(request.user))):
+            available_statuses = get_allowed_order_statuses(request.user, order.status)
+            if new_status not in available_statuses:
+                return Response({
+                    'error': f'Invalid status transition from {order.status} to {new_status}.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        previous_status = order.status
         order.status = new_status
         order.save(update_fields=['status', 'updated_at'])
+        if previous_status != new_status:
+            send_order_status_update(order, previous_status)
+            log_admin_action(
+                request.user,
+                'order.status_override' if force_override or request.user.is_superuser else 'order.status_change',
+                'order',
+                order.pk,
+                f'{previous_status}->{new_status}',
+            )
 
         return Response({
             'message': f'Order status updated to {new_status}.',
             'status': order.status,
             'available_statuses': get_allowed_order_statuses(request.user, order.status),
+        })
+
+
+class AdminOrderPaymentOverrideAPIView(APIView):
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({'error': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        payment_status = (request.data.get('payment_status') or '').strip()
+        valid = {choice for choice, _ in Order.PAYMENT_STATUS_CHOICES}
+        if payment_status not in valid:
+            return Response({'error': 'Invalid payment_status.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        previous = order.payment_status
+        order.payment_status = payment_status
+        if request.data.get('gateway_transaction_id') is not None:
+            order.gateway_transaction_id = str(request.data.get('gateway_transaction_id') or '')
+        order.save(update_fields=['payment_status', 'gateway_transaction_id', 'updated_at'])
+        log_admin_action(
+            request.user,
+            'order.payment_override',
+            'order',
+            order.pk,
+            f'{previous}->{payment_status}',
+        )
+        return Response({
+            'message': 'Payment status updated.',
+            'payment_status': order.payment_status,
+            'gateway_transaction_id': order.gateway_transaction_id,
         })
 
 

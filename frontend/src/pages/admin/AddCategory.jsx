@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 export default function AddCategory() {
   const navigate = useNavigate()
@@ -22,7 +22,7 @@ export default function AddCategory() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
 
     const payload = new FormData()
     payload.append('name', form.name)

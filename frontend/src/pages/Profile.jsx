@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { updateStoredUsername, API_BASE_URL } from '../utils/auth'
+import { updateStoredUsername, API_BASE_URL , getAccessToken} from '../utils/auth'
 
 export default function Profile() {
   const navigate = useNavigate()
@@ -11,7 +11,7 @@ export default function Profile() {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return
@@ -43,7 +43,7 @@ export default function Profile() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${getAccessToken()}`,
         },
         body: JSON.stringify({ username, first_name: form.first_name, last_name: form.last_name }),
       })

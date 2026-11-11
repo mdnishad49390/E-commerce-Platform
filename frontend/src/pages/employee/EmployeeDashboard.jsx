@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import StatCard from '../../components/admin/StatCard'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 export default function EmployeeDashboard() {
   const [stats, setStats] = useState(null)
@@ -9,7 +9,7 @@ export default function EmployeeDashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return

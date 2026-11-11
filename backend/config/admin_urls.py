@@ -1,10 +1,14 @@
 from django.urls import path
 
 from accounts.views import (
+    AdminAuditLogListAPIView,
     AdminCustomerDetailAPIView,
     AdminCustomerListAPIView,
     AdminEmployeeDetailAPIView,
     AdminEmployeeListCreateAPIView,
+    AdminUserDetailAPIView,
+    AdminUserListAPIView,
+    AdminUserPasswordResetAPIView,
 )
 from orders.views import (
     AdminCouponDetailAPIView,
@@ -14,6 +18,7 @@ from orders.views import (
     AdminGiftVoucherListCreateAPIView,
     AdminOrderDetailAPIView,
     AdminOrderListAPIView,
+    AdminOrderPaymentOverrideAPIView,
     AdminOrderStatusUpdateAPIView,
 )
 from products.views import (
@@ -22,6 +27,8 @@ from products.views import (
     AdminCategoryListCreateAPIView,
     AdminProductDetailAPIView,
     AdminProductListCreateAPIView,
+    AdminReviewDetailAPIView,
+    AdminReviewListAPIView,
 )
 
 urlpatterns = [
@@ -29,6 +36,13 @@ urlpatterns = [
     path('orders/', AdminOrderListAPIView.as_view(), name='admin-orders'),
     path('orders/<int:order_id>/', AdminOrderDetailAPIView.as_view(), name='admin-order-detail'),
     path('orders/<int:order_id>/status/', AdminOrderStatusUpdateAPIView.as_view(), name='admin-order-status'),
+    path('orders/<int:order_id>/payment/', AdminOrderPaymentOverrideAPIView.as_view(), name='admin-order-payment'),
+    path('users/', AdminUserListAPIView.as_view(), name='admin-users'),
+    path('users/<int:user_id>/', AdminUserDetailAPIView.as_view(), name='admin-user-detail'),
+    path('users/<int:user_id>/reset-password/', AdminUserPasswordResetAPIView.as_view(), name='admin-user-reset-password'),
+    path('audit-logs/', AdminAuditLogListAPIView.as_view(), name='admin-audit-logs'),
+    path('reviews/', AdminReviewListAPIView.as_view(), name='admin-reviews'),
+    path('reviews/<int:review_id>/', AdminReviewDetailAPIView.as_view(), name='admin-review-detail'),
     path('products/', AdminProductListCreateAPIView.as_view(), name='admin-product-list-create'),
     path('products/<int:product_id>/', AdminProductDetailAPIView.as_view(), name='admin-product-detail'),
     path('categories/', AdminCategoryListCreateAPIView.as_view(), name='admin-category-list-create'),

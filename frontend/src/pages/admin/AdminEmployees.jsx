@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 const API = `${API_BASE_URL}/api/admin/employees/`
 const emptyForm = { first_name: '', last_name: '', username: '', email: '', password: '' }
@@ -14,7 +14,7 @@ export default function AdminEmployees() {
   const navigate = useNavigate()
 
   const loadEmployees = () => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return
@@ -43,7 +43,7 @@ export default function AdminEmployees() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${getAccessToken()}`,
         },
         body: JSON.stringify(form),
       })
@@ -65,7 +65,7 @@ export default function AdminEmployees() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${getAccessToken()}`,
         },
         body: JSON.stringify({ is_active: !employee.is_active }),
       })

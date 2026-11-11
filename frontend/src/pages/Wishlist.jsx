@@ -1,3 +1,4 @@
+import { getAccessToken } from '../utils/auth'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
@@ -15,7 +16,7 @@ function Wishlist() {
   const [actionError, setActionError] = useState('')
 
   useEffect(() => {
-    if (!localStorage.getItem('access_token') || error?.includes('login')) {
+    if (!getAccessToken() || error?.includes('login')) {
       navigate('/login', { replace: true })
     }
   }, [error, navigate])

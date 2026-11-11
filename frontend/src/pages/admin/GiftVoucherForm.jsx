@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 const API_URL = `${API_BASE_URL}/api/admin/gift-vouchers/`
 
@@ -28,7 +28,7 @@ export default function GiftVoucherForm() {
 
   useEffect(() => {
     if (!editing) return
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return
@@ -85,7 +85,7 @@ export default function GiftVoucherForm() {
         method: editing ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${getAccessToken()}`,
         },
         body: JSON.stringify(payload),
       })

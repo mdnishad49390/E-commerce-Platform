@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { API_BASE_URL, clearAuthData, fetchWithTokenRefresh } from '../../utils/auth'
+import { API_BASE_URL, clearAuthData, fetchWithTokenRefresh , getAccessToken} from '../../utils/auth'
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 const allowedImageExtensions = new Set(['jpg', 'jpeg', 'png', 'webp'])
@@ -48,7 +48,7 @@ export default function AddProduct({ apiPrefix = '/api/admin', routeBase = '/adm
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     fetch(`${API_BASE_URL}${apiPrefix}/categories/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -139,7 +139,7 @@ export default function AddProduct({ apiPrefix = '/api/admin', routeBase = '/adm
     event.preventDefault()
     setError('')
     setIsSubmitting(true)
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
 
     const payload = new FormData()
     payload.append('name', form.name)

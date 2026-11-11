@@ -23,6 +23,7 @@ function Login() {
         `${API_BASE_URL}/api/accounts/login/`,
         {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatPrice } from '../../utils/formatPrice'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 export default function AdminProducts({ apiPrefix = '/api/admin', routeBase = '/admin' }) {
   const [products, setProducts] = useState([])
@@ -10,7 +10,7 @@ export default function AdminProducts({ apiPrefix = '/api/admin', routeBase = '/
   const navigate = useNavigate()
 
   const loadProducts = () => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return

@@ -4,6 +4,9 @@ import './index.css'
 import App from './App.jsx'
 import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
+import { bootstrapAuth } from './utils/auth'
+
+bootstrapAuth()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

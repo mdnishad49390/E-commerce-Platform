@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { API_BASE_URL } from '../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../utils/auth'
 
 function Checkout() {
   const location = useLocation()
@@ -59,6 +59,33 @@ function Checkout() {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
+  const [deliveryFee, setDeliveryFee] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    const loadFee = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/orders/shipping-quote/`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            delivery_method: deliveryMethod,
+            district: formData.district,
+            upazila: formData.upazila,
+          }),
+        })
+        const data = await response.json().catch(() => ({}))
+        if (!cancelled && response.ok) {
+          setDeliveryFee(Number(data.delivery_fee || 0))
+        }
+      } catch {
+        if (!cancelled) setDeliveryFee(0)
+      }
+    }
+    loadFee()
+    return () => { cancelled = true }
+  }, [deliveryMethod, formData.district, formData.upazila])
 
   if (checkoutItems.length === 0) {
     return (
@@ -172,20 +199,6 @@ function Checkout() {
     return true
   }
 
-  const getDeliveryFee = () => {
-    if (deliveryMethod === 'Store Pickup') {
-      return 0
-    }
-
-    if (deliveryMethod === 'Express Delivery') {
-      return 120
-    }
-
-    return 70
-  }
-
-  const deliveryFee = getDeliveryFee()
-
   const couponDiscountAmount = appliedCoupon
     ? Number(appliedCoupon.discount_amount || 0)
     : 0
@@ -202,7 +215,7 @@ function Checkout() {
   const finalTotal = discountedSubtotal + deliveryFee
 
   const validateVoucherCode = async (code, couponCode = '') => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     const response = await fetch(
       `${API_BASE_URL}/api/orders/vouchers/validate/`,
       {
@@ -254,7 +267,7 @@ function Checkout() {
     setCouponMessage('')
 
     try {
-      const token = localStorage.getItem('access_token')
+      const token = getAccessToken()
       const response = await fetch(
         `${API_BASE_URL}/api/orders/coupons/validate/`,
         {
@@ -356,7 +369,7 @@ function Checkout() {
     return
   }
 
-  const token = localStorage.getItem('access_token')
+  const token = getAccessToken()
 
   if (!token) {
     alert('Please login before placing an order.')
@@ -400,6 +413,7 @@ function Checkout() {
         `${API_BASE_URL}/api/orders/create/`,
         {
           method: 'POST',
+          credentials: 'include',
           headers,
           body: JSON.stringify(orderData),
         }
@@ -413,6 +427,23 @@ function Checkout() {
         data.detail ||
         'Failed to create order.'
       )
+    }
+
+    if (data.requires_online_payment && data.order_id) {
+      const payResponse = await fetch(`${API_BASE_URL}/api/orders/initiate-payment/`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ order_id: data.order_id }),
+      })
+      const payData = await payResponse.json().catch(() => ({}))
+      if (payResponse.ok && payData.redirect_url) {
+        window.location.href = payData.redirect_url
+        return
+      }
     }
 
     if (!isBuyNowCheckout) {

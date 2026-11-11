@@ -1,15 +1,16 @@
 import { Navigate } from 'react-router-dom'
-import { getCurrentRole, getRoleHome } from '../utils/auth'
+import { getAccessToken, getCurrentRole, getRoleHome, isSuperuser } from '../utils/auth'
 
 export default function ProtectedRoute({ children, requiredRole, requiredRoles }) {
   const role = getCurrentRole()
   const allowedRoles = requiredRoles || (requiredRole ? [requiredRole] : [])
 
-  if (!localStorage.getItem('access_token') || !role) {
+  if (!getAccessToken() || !role) {
     return <Navigate to="/login" replace />
   }
 
-  if (allowedRoles.length && !allowedRoles.includes(role)) {
+  const superBypass = allowedRoles.includes('admin') && isSuperuser()
+  if (allowedRoles.length && !allowedRoles.includes(role) && !superBypass) {
     return <Navigate to={getRoleHome(role)} replace />
   }
 

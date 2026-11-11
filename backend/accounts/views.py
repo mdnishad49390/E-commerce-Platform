@@ -10,10 +10,10 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 from orders.models import Order
-from .serializers import CustomTokenObtainPairSerializer, RegisterSerializer
+from .jwt_cookies import attach_auth_response
+from .serializers import RegisterSerializer
 
 try:
     from google.auth.transport import requests as google_requests
@@ -24,7 +24,9 @@ except ImportError:  # pragma: no cover
 
 import jwt
 
-from .models import SocialAccount, UserRoleProfile
+from .audit import log_admin_action
+from .guards import is_primary_super_admin, validate_user_mutation
+from .models import AdminAuditLog, SocialAccount, UserRoleProfile
 from .permissions import IsAdmin
 from .roles import ensure_user_role_profile, get_user_role
 
@@ -34,10 +36,6 @@ User = get_user_model()
 
 class RegisterAPIView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
-
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
 
 
 def _generate_unique_username(base_name, provider):
@@ -402,7 +400,9 @@ class GoogleLoginAPIView(APIView):
             first_name=payload.get('given_name', ''),
             last_name=payload.get('family_name', ''),
         )
-        return Response(_build_token_response(user))
+        response = Response(_build_token_response(user))
+        attach_auth_response(response, response.data)
+        return response
 
 
 class AppleLoginAPIView(APIView):
@@ -463,4 +463,160 @@ class AppleLoginAPIView(APIView):
             email=apple_email,
             name=display_name or (apple_email.split('@')[0] if apple_email else ''),
         )
-        return Response(_build_token_response(user))
+        response = Response(_build_token_response(user))
+        attach_auth_response(response, response.data)
+        return response
+
+
+class AdminUserListAPIView(APIView):
+    permission_classes = [IsAdmin]
+
+    @staticmethod
+    def serialize_user(user):
+        role = get_user_role(user)
+        return {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': role,
+            'is_active': user.is_active,
+            'is_staff': user.is_staff,
+            'is_superuser': user.is_superuser,
+            'is_primary_super_admin': is_primary_super_admin(user),
+            'date_joined': user.date_joined.isoformat(),
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+        }
+
+    def get(self, request):
+        users = User.objects.select_related('role_profile').order_by('-date_joined')
+        role_filter = (request.query_params.get('role') or '').strip().lower()
+        search = (request.query_params.get('search') or '').strip()
+
+        if role_filter and role_filter != 'all':
+            users = users.filter(role_profile__role=role_filter)
+
+        if search:
+            users = users.filter(
+                Q(username__icontains=search)
+                | Q(email__icontains=search)
+                | Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+            )
+
+        return Response([self.serialize_user(user) for user in users])
+
+
+class AdminUserDetailAPIView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request, user_id):
+        user = User.objects.select_related('role_profile').filter(id=user_id).first()
+        if not user:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(AdminUserListAPIView.serialize_user(user))
+
+    def patch(self, request, user_id):
+        user = User.objects.select_related('role_profile').filter(id=user_id).first()
+        if not user:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        new_role = request.data.get('role')
+        if new_role is not None:
+            new_role = str(new_role).strip().lower()
+            if new_role not in {
+                UserRoleProfile.ROLE_ADMIN,
+                UserRoleProfile.ROLE_EMPLOYEE,
+                UserRoleProfile.ROLE_CUSTOMER,
+            }:
+                return Response({'error': 'Invalid role.'}, status=status.HTTP_400_BAD_REQUEST)
+            guard_error = validate_user_mutation(request.user, user, new_role=new_role)
+            if guard_error:
+                return Response({'error': guard_error}, status=status.HTTP_400_BAD_REQUEST)
+            profile = ensure_user_role_profile(user)
+            profile.role = new_role
+            profile.save(update_fields=['role'])
+            user.is_staff = new_role == UserRoleProfile.ROLE_ADMIN
+            if new_role != UserRoleProfile.ROLE_ADMIN:
+                user.is_superuser = False
+            user.save(update_fields=['is_staff', 'is_superuser'])
+            log_admin_action(request.user, 'user.role_change', 'user', user.pk, f'role={new_role}')
+
+        if 'is_active' in request.data:
+            active = request.data.get('is_active') in [True, 'true', 'True', '1']
+            guard_error = validate_user_mutation(request.user, user, deactivate=not active)
+            if guard_error:
+                return Response({'error': guard_error}, status=status.HTTP_400_BAD_REQUEST)
+            user.is_active = active
+            user.save(update_fields=['is_active'])
+            log_admin_action(request.user, 'user.active_toggle', 'user', user.pk, f'is_active={active}')
+
+        if 'is_superuser' in request.data and request.user.is_superuser:
+            wants_super = request.data.get('is_superuser') in [True, 'true', 'True', '1']
+            guard_error = validate_user_mutation(request.user, user, demote_super=not wants_super)
+            if guard_error:
+                return Response({'error': guard_error}, status=status.HTTP_400_BAD_REQUEST)
+            user.is_superuser = wants_super
+            user.is_staff = user.is_staff or wants_super
+            user.save(update_fields=['is_superuser', 'is_staff'])
+            log_admin_action(request.user, 'user.superuser_toggle', 'user', user.pk, f'is_superuser={wants_super}')
+
+        return Response(AdminUserListAPIView.serialize_user(user))
+
+    def delete(self, request, user_id):
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        guard_error = validate_user_mutation(request.user, user, delete=True)
+        if guard_error:
+            return Response({'error': guard_error}, status=status.HTTP_400_BAD_REQUEST)
+        if user.pk == request.user.pk:
+            return Response({'error': 'You cannot delete your own account here.'}, status=status.HTTP_400_BAD_REQUEST)
+        username = user.username
+        user.delete()
+        log_admin_action(request.user, 'user.delete', 'user', user_id, f'username={username}')
+        return Response({'message': 'User deleted.'}, status=status.HTTP_200_OK)
+
+
+class AdminUserPasswordResetAPIView(APIView):
+    permission_classes = [IsAdmin]
+
+    def post(self, request, user_id):
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        new_password = request.data.get('new_password') or ''
+        if len(new_password) < 8:
+            return Response({'error': 'Password must be at least 8 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            validate_password(new_password, user=user)
+        except ValidationError as error:
+            return Response({'error': list(error.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        log_admin_action(request.user, 'user.password_reset', 'user', user.pk, '')
+        return Response({'message': 'Password updated.'}, status=status.HTTP_200_OK)
+
+
+class AdminAuditLogListAPIView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        limit = min(int(request.query_params.get('limit', 100)), 500)
+        logs = AdminAuditLog.objects.select_related('actor').order_by('-created_at')[:limit]
+        return Response([
+            {
+                'id': entry.id,
+                'actor': entry.actor.username if entry.actor else 'system',
+                'action': entry.action,
+                'target_type': entry.target_type,
+                'target_id': entry.target_id,
+                'detail': entry.detail,
+                'created_at': entry.created_at.isoformat(),
+            }
+            for entry in logs
+        ])

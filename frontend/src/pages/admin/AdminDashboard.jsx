@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import OrderStatusBadge from '../../components/admin/OrderStatusBadge'
 import StatCard from '../../components/admin/StatCard'
 import { formatPrice } from '../../utils/formatPrice'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 const API = `${API_BASE_URL}/api/admin`
 
@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return

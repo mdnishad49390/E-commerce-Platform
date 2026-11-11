@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import OrderStatusBadge from '../../components/admin/OrderStatusBadge'
 import { formatPrice } from '../../utils/formatPrice'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 const statusTransitionMap = {
   Pending: ['Confirmed', 'Cancelled'],
@@ -31,7 +31,7 @@ export default function AdminOrderDetail({ apiPrefix = '/api/admin', routeBase =
   const navigate = useNavigate()
 
   const fetchOrder = () => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return
@@ -66,7 +66,7 @@ export default function AdminOrderDetail({ apiPrefix = '/api/admin', routeBase =
   }, [id, apiPrefix, navigate])
 
   const updateStatus = async (nextStatus) => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) return
 
     setUpdating(true)

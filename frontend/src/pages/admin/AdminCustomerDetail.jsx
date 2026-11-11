@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import OrderStatusBadge from '../../components/admin/OrderStatusBadge'
 import { formatPrice } from '../../utils/formatPrice'
-import { API_BASE_URL } from '../../utils/auth'
+import { API_BASE_URL , getAccessToken} from '../../utils/auth'
 
 export default function AdminCustomerDetail() {
   const { id } = useParams()
@@ -12,7 +12,7 @@ export default function AdminCustomerDetail() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
     if (!token) {
       navigate('/login')
       return

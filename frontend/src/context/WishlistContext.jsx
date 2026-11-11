@@ -1,11 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { clearAuthData, API_BASE_URL } from '../utils/auth'
+import { clearAuthData, API_BASE_URL , getAccessToken} from '../utils/auth'
 
 const WishlistContext = createContext(null)
 const API_URL = `${API_BASE_URL}/api/wishlist`
 
 function getToken() {
-  return localStorage.getItem('access_token')
+  return getAccessToken()
 }
 
 function clearExpiredAuth() {
